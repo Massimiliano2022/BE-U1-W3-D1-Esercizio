@@ -77,6 +77,18 @@ public class Student {
 		return votoMassimo;
 	}
 
+	public Student(int id, String nome, String cognome, String sesso, Date dataNascita, double mediaVoti,
+			double votoMinimo, double votoMassimo) {
+		setId(id);
+		setNome(nome);
+		setCognome(cognome);
+		setSesso(sesso);
+		setDataNascita(dataNascita);
+		setMediaVoti(mediaVoti);
+		setVotoMinimo(votoMinimo);
+		setVotoMassimo(votoMassimo);
+	}
+
 	public Student(String nome, String cognome, String sesso, Date dataNascita, double mediaVoti, double votoMinimo,
 			double votoMassimo) {
 		setNome(nome);

@@ -7,6 +7,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import app.entities.Student;
 
@@ -23,15 +26,19 @@ public class Application {
 
 		if (conn != null) {
 
+			List<Student> listaStudenti = getListaStudenti();
+
 			creaStudente();
 
-			/*
-			 * int idSelectedStudent = selectIdStudent(s);
-			 * 
-			 * if (idSelectedStudent != 0) { updateStudent(4.5, idSelectedStudent);
-			 * deleteStudent(idSelectedStudent); }
-			 */
+			Student studenteCercato = cercaStudente(listaStudenti.size() + 1);
 
+			updateStudent(5.0, studenteCercato.getId());
+
+			getBestStudent();
+
+			deleteStudent(studenteCercato.getId());
+
+			disconnettiDb(conn);
 		}
 	}
 
@@ -43,6 +50,37 @@ public class Application {
 			e.printStackTrace();
 		}
 		return conn;
+	}
+
+	private static List<Student> getListaStudenti() {
+		List<Student> listaStudenti = new ArrayList<>();
+		String sqlSelect = "SELECT * FROM students";
+		try {
+			Statement stmt = conn.createStatement();
+			ResultSet result = stmt.executeQuery(sqlSelect);
+			while (result.next()) {
+
+				int id = result.getInt("id");
+				String nome = result.getString("nome");
+				String cognome = result.getString("cognome");
+				String sesso = result.getString("sesso");
+				Date dataNascita = result.getDate("data_nascita");
+				double media = result.getDouble("media");
+				double votoMinimo = result.getDouble("voto_minimo");
+				double votoMassimo = result.getDouble("voto_massimo");
+
+				Student s = new Student(id, nome, cognome, sesso, dataNascita, media, votoMinimo, votoMassimo);
+				listaStudenti.add(s);
+
+				System.out.println("Studente : " + s.getId() + " " + s.getNome() + " " + s.getCognome());
+
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			e.getMessage();
+		}
+
+		return listaStudenti;
 	}
 
 	private static void creaStudente() {
@@ -71,17 +109,25 @@ public class Application {
 		}
 	}
 
-	private static int selectIdStudent(Student s) {
-		int id = 0;
-
-		String sqlSelect = "SELECT * FROM students WHERE nome='" + s.getNome() + "' AND cognome='" + s.getCognome()
-				+ "'";
+	private static Student cercaStudente(int idSearch) {
+		Student s = null;
+		String sqlSelect = "SELECT * FROM students WHERE id='" + idSearch + "'";
 		try {
 			Statement stmt = conn.createStatement();
 			ResultSet result = stmt.executeQuery(sqlSelect);
 			while (result.next()) {
 
-				id = result.getInt("id");
+				int id = result.getInt("id");
+				String nome = result.getString("nome");
+				String cognome = result.getString("cognome");
+				String sesso = result.getString("sesso");
+				Date dataNascita = result.getDate("data_nascita");
+				double media = result.getDouble("media");
+				double votoMinimo = result.getDouble("voto_minimo");
+				double votoMassimo = result.getDouble("voto_massimo");
+
+				s = new Student(id, nome, cognome, sesso, dataNascita, media, votoMinimo, votoMassimo);
+				System.out.println("Studente cercato : " + s.getId() + " " + s.getNome() + " " + s.getCognome());
 
 			}
 		} catch (SQLException e) {
@@ -89,7 +135,7 @@ public class Application {
 			e.getMessage();
 		}
 
-		return id;
+		return s;
 	}
 
 	private static void updateStudent(double d, int i) {
@@ -112,6 +158,28 @@ public class Application {
 		}
 	}
 
+	private static void getBestStudent() {
+
+		Student bestStudent = null;
+
+		List<Student> listaStudenti = getListaStudenti();
+
+		Iterator<Student> i = listaStudenti.iterator();
+
+		while (i.hasNext()) {
+
+			Student s = i.next();
+
+			if (s.getMediaVoti() > bestStudent.getMediaVoti()) {
+
+				bestStudent = i.next();
+
+			}
+
+		}
+
+	}
+
 	private static void deleteStudent(int idSelectedStudent) {
 		String sqlDeleteOne = "DELETE FROM students WHERE id = ?";
 		try {
@@ -119,6 +187,16 @@ public class Application {
 			stmt.setInt(1, idSelectedStudent);
 			stmt.execute();
 			System.out.println("Studente con id " + idSelectedStudent + " eliminato!");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			e.getMessage();
+		}
+	}
+
+	private static void disconnettiDb(Connection conn2) {
+		try {
+			conn.close();
+			System.out.println("Disconnesso");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			e.getMessage();
